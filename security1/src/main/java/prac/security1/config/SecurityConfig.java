@@ -10,14 +10,14 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.SecurityFilterChain;
+import prac.security1.domain.user.repository.UserRepository;
+import prac.security1.domain.user.security.oauth.Oauth2KakaoUserService;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final DefaultOAuth2UserService oauth2UserService;
-
+    private final UserRepository repository;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -30,12 +30,16 @@ public class SecurityConfig {
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/"))
                 .oauth2Login(oauth -> oauth.loginPage("/login")
-                        .userInfoEndpoint(info->info.userService(oauth2UserService)))
+                        .userInfoEndpoint(info->info.userService(oAuth2UserService())))
         ;
 
         return http.build();
     }
 
+    @Bean
+    public DefaultOAuth2UserService oAuth2UserService(){
+        return new Oauth2KakaoUserService(repository,passwordEncoder());
+    }
     @Bean
     public PasswordEncoder passwordEncoder(){
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
